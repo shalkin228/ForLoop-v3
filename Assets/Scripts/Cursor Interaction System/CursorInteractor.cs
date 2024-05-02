@@ -7,15 +7,27 @@ public class CursorInteractor : MonoBehaviour
     private Vector2 _mousePosition => Input.mousePosition;
     private bool _isMouseButtonDown => Input.GetMouseButtonDown(0);
     private Camera _camera;
+    private ICursorHoverable _lastCursorHoverable;
 
-    private void Start()
+    private void Awake()
     {
         _camera = GetComponent<Camera>();
     }
 
     private void Update()
     {
-        if (!RaycastCursor(out ICursorHoverable hoverable, out RaycastHit hit)) return;
+        if (!RaycastCursor(out ICursorHoverable hoverable, out RaycastHit hit))
+        {
+            _lastCursorHoverable?.OnCursorExit();
+            _lastCursorHoverable = null;
+            return;
+        }
+
+        if (_lastCursorHoverable != hoverable)
+        {
+            hoverable.OnCursorEnter(hit);
+            _lastCursorHoverable = hoverable;
+        }
 
         hoverable.OnCursorHover(hit);
 
